@@ -6,11 +6,24 @@ import { GraphQLServer } from 'graphql-yoga'
 // Scalar Types: String, Boolean, Int, Float, ID
 const typeDefs = `
   type Query {
+    greeting(name: String, lastname: String): String!
+    add(a: Float!, b: Float!): Float!
+    me: User!
+    post: Post!
+  }
+
+  type User {
     id: ID!
-    name: String!
-    age: Int!
-    employed: Boolean!
-    score: Float
+    fullname: String!
+    email: String!
+    age: Int
+  }
+
+  type Post {
+    id: ID!
+    title: String
+    body: String!
+    published: Boolean!
   }
 `
 
@@ -18,20 +31,42 @@ const typeDefs = `
 // A set of functions
 const resolvers = {
   Query: {
-    id() {
-      return 'xpto10'
+    // greeting(parent, args, ctx, info)
+    greeting(parent, args, ctx, info) {
+      // console.log(args)
+      if (args.name && args.lastname) {
+        return `Hello, ${args.name} ${args.lastname}`
+      } else if (args.lastname) {
+        return `Hello, ${args.lastname}`
+      } else if (args.name) {
+        return `Hello, ${args.name}`
+      } else return 'Hello annonymous'
     },
-    name() {
-      return 'Beto'
+
+    add(parent, args, ctx, info) {
+      if (!args) {
+        return 0
+      } else {
+        return args.a + args.b
+      }
     },
-    age() {
-      return 34
+
+    me() {
+      return {
+        id: 'x90210',
+        fullname: 'Beto Costa',
+        email: 'beto@example.com',
+        age: 34
+      }
     },
-    employed() {
-      return true
-    },
-    score() {
-      return null
+
+    post() {
+      return {
+        id: '123',
+        title: 'Post title',
+        body: 'Post body',
+        published: true
+      }
     }
   }
 }
