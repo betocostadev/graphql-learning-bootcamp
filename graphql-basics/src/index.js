@@ -11,9 +11,20 @@ const users = [
 
 const posts = [
   { id: '43', title: 'Testing graphql', body: 'This is some text', published: true, author: '1' },
-  { id: '65', title: 'Testing React', body: 'What about learning some GraphQL?', published: true, author: '1' },
+  { id: '65', title: 'GraphQL basics', body: 'What about learning some GraphQL?', published: true, author: '1' },
   { id: '83', title: 'Graphql queries', body: 'This is some text', published: false, author: '2' },
-  { id: '33', title: 'React now', body: 'This is some text', published: false, author: '3'},
+  { id: '33', title: 'React now', body: 'This is some text', published: true, author: '3'},
+  { id: '35', title: 'React native', body: 'In this post we are going to learn React Native', published: true, author: '2'},
+]
+
+const comments = [
+  { id: 432, author: '2', post: '43', text: 'Great article'},
+  { id: 321, author: '1', post: '65', text: 'Great I liked it a lot'},
+  { id: 329, author: '4', post: '33', text: 'Hard for me'},
+  { id: 632, author: '1', post: '43', text: 'Where can I found more?'},
+  { id: 132, author: '3', post: '65', text: 'This is my comment'},
+  { id: 872, author: '4', post: '43', text: 'Great article!2'},
+  { id: 872, author: '1', post: '35', text: 'Nice to see an article about React Native'},
 ]
 
 
@@ -25,6 +36,7 @@ const typeDefs = `
   type Query {
     users(query: String): [User!]!
     posts(query: String): [Post!]!
+    comments: [Comment!]!
     me: User!
     post: Post!
   }
@@ -34,6 +46,8 @@ const typeDefs = `
     name: String!
     email: String!
     age: Int
+    posts: [Post!]!
+    comments: [Comment!]!
   }
 
   type Post {
@@ -42,6 +56,14 @@ const typeDefs = `
     body: String!
     published: Boolean!
     author: User!
+    comments: [Comment!]!
+  }
+
+  type Comment {
+    id: ID!
+    text: String!
+    author: User!
+    post: Post!
   }
 `
 
@@ -87,12 +109,48 @@ const resolvers = {
         body: 'Post body',
         published: true
       }
+    },
+
+    comments(parent, args, ctx, info) {
+      return comments
     }
   },
+
   Post: {
     author(parent, args, ctx, info) {
       return users.find((user) => {
         return user.id === parent.author
+      })
+    },
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.post === parent.id
+      })
+    }
+  },
+
+  Comment: {
+    author(parent, args, ctx, info) {
+      return users.find((user) => {
+        return user.id === parent.author
+      })
+    },
+    post(parent, args, ctx, info) {
+      return posts.find((post) => {
+        return post.id === parent.post
+      })
+    }
+  },
+
+  User: {
+    posts(parent, args, ctx, info) {
+      return posts.filter((post) => {
+        return post.author === parent.id
+      })
+    },
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => {
+        return comment.author === parent.id
       })
     }
   }
