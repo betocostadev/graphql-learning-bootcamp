@@ -1,4 +1,5 @@
 import { GraphQLServer } from 'graphql-yoga'
+import { uuid } from 'uuidv4'
 
 // Since we are not using a DB here, there is the demo data below
 // Demo user data
@@ -32,6 +33,7 @@ const comments = [
 // Where we define all our operations that can be performed in our API
 // Using ! after the name of the type definition means it can never return null
 // Scalar Types: String, Boolean, Int, Float, ID
+// Mutations are like C-Create, U-Update, D-Delete
 const typeDefs = `
   type Query {
     users(query: String): [User!]!
@@ -39,6 +41,12 @@ const typeDefs = `
     comments: [Comment!]!
     me: User!
     post: Post!
+  }
+
+  type Mutation {
+    createUser(name: String!, email: String!, age: Int): User!
+    createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
+    createComment(text: String!, author: ID!, post: ID!): Comment!
   }
 
   type User {
@@ -116,6 +124,70 @@ const resolvers = {
     }
   },
 
+  // Resolver for Mutation
+  Mutation: {
+    createUser(parent, args, ctx, info) {
+      const emailTaken = users.some((user) => user.email === args.email)
+      if (emailTaken) {
+        throw new Error('Email already taken.')
+      }
+
+      const user = {
+        id: uuid(),
+        name: args.name,
+        email: args.email,
+        age: args.age ? args.age : null
+      }
+
+      users.push(user)
+
+      return user
+    },
+
+    createPost(parent, args, ctx, info) {
+      const validAuthor = users.some((user) => user.id === args.author)
+
+      if (!validAuthor) {
+        throw new Error('Author not found!')
+      }
+
+      const post = {
+        id: uuid(),
+        title: args.title,
+        body: args.body,
+        published: args.published,
+        author: args.author
+      }
+
+      posts.push(post)
+
+      return post
+    },
+
+    createComment(parent, args, ctx, info) {
+      const validUser = users.some((user) => user.id === args.author)
+      const validPost = posts.some((post) => post.id === args.post && post.published)
+
+      if (!validUser) {
+        throw new Error('User not found')
+      } else if(!validPost) {
+        throw new Error('Post not published')
+      }
+
+      const comment = {
+        id: uuid(),
+        text: args.text,
+        author: args.author,
+        post: args.post
+      }
+
+      comments.push(comment)
+
+      return comment
+    }
+  },
+
+  // Back to queries
   Post: {
     author(parent, args, ctx, info) {
       return users.find((user) => {
