@@ -34,6 +34,13 @@ const dbPosts = [
     published: true,
     author: '4',
   },
+  {
+    id: '12',
+    title: 'The life of Floriano',
+    body: 'In this post I will tell you about the life of Floriano, yes, Joaquim Floariano.',
+    published: true,
+    author: '6',
+  },
 ]
 
 const dbComments = [

@@ -8,6 +8,7 @@ import { dbUsers, dbPosts, dbComments } from './fakeDB'
 const typeDefs = `
   type Query {
     users(query: String): [User!]!
+    posts(query: String): [Post!]!
     me: User!
     post: Post!
   }
@@ -17,6 +18,7 @@ const typeDefs = `
     name: String!
     email: String!
     age: Int
+    posts: [Post!]!
   }
 
   type Post {
@@ -24,6 +26,7 @@ const typeDefs = `
     title: String!
     body: String!
     published: Boolean!
+    author: User!
   }
 `
 // Resolvers
@@ -41,6 +44,18 @@ const resolvers = {
         )
       })
     },
+    posts(parent, args, ctx, info) {
+      if (!args.query) {
+        return dbPosts
+      }
+
+      return dbPosts.filter((post) => {
+        return (
+          post.title.toLowerCase().includes(args.query.toLowerCase()) ||
+          post.body.toLowerCase().includes(args.query.toLowerCase())
+        )
+      })
+    },
     me() {
       return {
         id: '0010',
@@ -55,6 +70,18 @@ const resolvers = {
         body: 'This is the post body, can you see it?',
         published: true,
       }
+    },
+  },
+  // Post below to use a relational query
+  Post: {
+    author(parent, args, ctx, info) {
+      return dbUsers.find((user) => user.id === parent.author)
+    },
+  },
+  // Same as the Post above. When graphql gets to the posts: [Post!]! field of the User query, it will run the function below.
+  User: {
+    posts(parent, args, ctx, info) {
+      return dbPosts.filter((post) => post.author === parent.id)
     },
   },
 }
